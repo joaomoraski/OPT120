@@ -8,6 +8,7 @@ class ApiUtils {
     // URL Da api
     final url = Uri.parse('http://localhost:3333/users');
     final response = await http.get(url); // espera a resposta
+    print(response);
     if (response.statusCode == 200) {
       print(response.body);
       // Se deu bom decodifica o json para uma lista de tipo dinamico

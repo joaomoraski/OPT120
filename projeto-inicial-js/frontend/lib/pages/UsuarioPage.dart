@@ -2,26 +2,19 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:frontend/entities/usuario.dart';
 import 'package:http/http.dart' as http;
-import 'package:frontend/services/api.dart' as api;
 
-class UsuarioPage extends StatelessWidget {
-  const UsuarioPage({super.key, required this.title});
+void main() => runApp(UsuarioApp());
 
-  final String title;
-
+class UsuarioApp extends StatelessWidget {
   @override
   Widget build(BuildContext context){
     return MaterialApp(
-      home: UsuariosScreen(title: title),
+      home: UsuariosScreen(),
     );
   }
 }
 
 class UsuariosScreen extends StatefulWidget {
-  const UsuariosScreen({super.key, required this.title});
-
-  final String title;
-
   @override
   _UsuariosScreenState createState() => _UsuariosScreenState();
 }
@@ -33,23 +26,27 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
     _fetchUsuarios();
   }
   Future<void> _fetchUsuarios() async {
-    final apiUtils = api.ApiUtils();
-    final List<Usuario> listUsuario = await apiUtils.fetchUsers();
-    setState(() {
-      _usuarios = listUsuario;
-    });
+    final response = await http.get(Uri.http('localhost:3333', '/users'));
+    if (response.statusCode == 200) {
+      final List<dynamic> json = jsonDecode(response.body);
+      setState(() {
+        _usuarios = json.map((item) => Usuario.fromJson(item)).toList();
+      });
+    } else {
+      throw Exception('Failed to load books');
+    }
   }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Usuários'),
+        title: Text('Usuarios'),
       ),
       body: ListView.builder(
         itemCount: _usuarios.length,
         itemBuilder: (BuildContext context, int index) {
           return ListTile(
-            title: Text(_usuarios[index].nome),
+            title: Text("${_usuarios[index].id} - ${_usuarios[index].nome}"),
             subtitle: Text(_usuarios[index].email),
           );
         },
