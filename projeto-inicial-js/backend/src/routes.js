@@ -1,44 +1,78 @@
 import express from 'express';
 import UsersController from './controllers/usersController.js'
-import pool from "./connection.js";
+import ActivityController from "./controllers/activityController.js";
 
 
 const routes = express.Router();
 
-routes.get('/', (req,res) => {
+routes.get('/', (req, res) => {
     res.send("Home do projeto");
 });
 
 const usersController = new UsersController();
 
-routes.post('/register', async (req,res) => {
+routes.post('/users/create', async (req, res) => {
     await usersController.create(req, res)
     res.send()
 });
 
-routes.get('/users', async (req,res) => {
+routes.get('/users', async (req, res) => {
     await usersController.getUsers(req, res)
 });
 
-routes.get('/users/:id', async (req,res) => {
+routes.get('/users/:id', async (req, res) => {
     const userId = req.params.id; // Pega o id da request
     await usersController.getUser(userId, req, res)
     res.send()
 });
 
 routes.delete('/users/:id', async (req, res) => {
-      const userId = req.params.id; // Pega o id da request
-      await usersController.deleteUser(userId, req, res);
-      res.send();
-   
-  });
-  
-  routes.put('/users/:id', async (req, res) => {
-      const userId = req.params.id;
-      const updatedUserData = req.body; // Pega os dados que serao atualizados da request
-      await usersController.updateUser(userId, updatedUserData, req, res);
-      res.send();
-  });
+    const userId = req.params.id; // Pega o id da request
+    await usersController.deleteUser(userId, req, res);
+    res.send();
+
+});
+
+routes.put('/users/:id', async (req, res) => {
+    const userId = req.params.id;
+    const updatedUserData = req.body; // Pega os dados que serao atualizados da request
+    await usersController.updateUser(userId, updatedUserData, req, res);
+    res.send();
+});
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const activityController = new ActivityController();
+
+routes.post('/activity/create', async (req,res) => {
+    await activityController.create(req, res)
+    res.send()
+});
+
+routes.get('/activity', async (req,res) => {
+    await activityController.getActivities(req, res)
+});
+
+routes.get('/activity/:id', async (req,res) => {
+    const activityId = req.params.id; // Pega o id da request
+    await activityController.getActivity(activityId, req, res)
+    res.send()
+});
+
+routes.delete('/activity/:id', async (req, res) => {
+    const activityId = req.params.id; // Pega o id da request
+    await activityController.deleteActivity(activityId, req, res);
+    res.send();
+
+});
+
+routes.put('/activity/:id', async (req, res) => {
+    const activityId = req.params.id;
+    const updatedActivityData = req.body; // Pega os dados que serao atualizados da request
+    await activityController.updateActivity(activityId, updatedActivityData, req, res);
+    res.send();
+});
 
 
 export default routes;

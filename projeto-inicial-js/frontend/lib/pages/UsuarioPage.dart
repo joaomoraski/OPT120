@@ -1,21 +1,6 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:frontend/components/custom_data_table.dart';
-import 'package:http/http.dart' as http;
-
-void main() => runApp(const UsuarioApp());
-
-class UsuarioApp extends StatelessWidget {
-  const UsuarioApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: UsuariosScreen(),
-    );
-  }
-}
+import 'package:frontend/services/userService.dart';
 
 class UsuariosScreen extends StatefulWidget {
   const UsuariosScreen({Key? key}) : super(key: key);
@@ -34,21 +19,106 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
   }
 
   Future<void> _fetchUsuarios() async {
-    final response = await http.get(Uri.parse('http://localhost:3333/users'));
-    if (response.statusCode == 200) {
-      final List<dynamic> json = jsonDecode(response.body);
-      final List<Map<String, dynamic>> users =
-      json.map((user) => user as Map<String, dynamic>).toList();
-      setState(() {
-        _usuarios = users;
-      });
-    } else {
-      throw Exception('Failed to load');
-    }
+    List<Map<String, dynamic>> users = await UserService.fetchUsers();
+    setState(() {
+      _usuarios = users;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return CustomDataTable(data: _usuarios, title: 'Lista de Usuários');
+    return Scaffold(
+      body: CustomDataTable(
+        data: _usuarios,
+        title: 'Lista de Usuários',
+        columnNames: ["Id", "Nome", "E-mail"],
+        onEdit: (index) {
+          print("ado ado");
+        },
+        onDelete: (index) {
+          print("ado ado");
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _mostrarDialogoAdicionarUsuario(context);
+        },
+        child: Icon(Icons.add),
+      ),
+    );
+  }
+
+  Future<void> _mostrarDialogoAdicionarUsuario(BuildContext context) async {
+    TextEditingController nomeController = TextEditingController();
+    TextEditingController emailController = TextEditingController();
+    TextEditingController senhaController = TextEditingController();
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Adicionar Usuário'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                TextFormField(
+                  controller: nomeController,
+                  decoration: InputDecoration(labelText: 'Nome'),
+                ),
+                TextFormField(
+                  controller: emailController,
+                  decoration: InputDecoration(labelText: 'E-mail'),
+                ),
+                TextFormField(
+                  controller: senhaController,
+                  decoration: InputDecoration(labelText: 'Senha'),
+                  obscureText: true,
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () async {
+                String nome = nomeController.text;
+                String email = emailController.text;
+                String senha = senhaController.text;
+
+                try {
+                  // Chama o método createUser do UserService
+                  await UserService.createUser(nome, email, senha);
+                  // Atualiza a lista de usuários
+                  await _fetchUsuarios();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Usuário criado com sucesso: $nome'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } catch (e) {
+                  print('Erro ao criar usuário: $e');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Erro ao criar usuário: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+
+                Navigator.of(context).pop();
+              },
+              child: Text('Salvar'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

@@ -48,7 +48,7 @@ class UsersController {
 		try {
 			const usersList = await pool.query('SELECT id, nome, email FROM usuario');
 
-			return response.status(200).send(usersList[0]);
+			return response.status(200).json(usersList[0]);
 		} catch (error) {
 			console.error(error);
 			return response.status(500).json({ message: 'Ocorreu um erro ao executar a listagem.' });

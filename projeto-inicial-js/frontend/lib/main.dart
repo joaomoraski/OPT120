@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/pages/AtividadePage.dart';
 import 'package:frontend/pages/UsuarioPage.dart';
+import 'package:frontend/services/BaseServiceApi.dart';
 
 void main() {
+  BaseServiceApi.initialize('http://localhost:3333');
   runApp(const MaterialApp(
-    title: 'Flutter Demo',
+    title: 'CRUD Atividades',
     home: MyHomePage(),
   ));
 }
@@ -39,7 +42,10 @@ class _MyHomePageState extends State<MyHomePage> {
             ElevatedButton(
               child: const Text('Atividades'),
               onPressed: () {
-                // TODO: Implementar navegação para página de atividades
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AtividadesScreen()),
+                );
               },
             ),
             const SizedBox(height: 16),
