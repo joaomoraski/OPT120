@@ -46,14 +46,9 @@ class UsersController {
 
 	async getUsers(request, response) {
 		try {
-			const connection = await pool.getConnection();
-			await connection.beginTransaction();
+			const usersList = await pool.query('SELECT id, nome, email FROM usuario');
 
-			const usersList = await connection.query('SELECT id, nome, email FROM usuario');
-
-			await connection.commit();
-
-			return response.status(201).json({ message: 'Listagem feita com sucesso.', data: usersList[0] });
+			return response.status(200).send(usersList[0]);
 		} catch (error) {
 			console.error(error);
 			return response.status(500).json({ message: 'Ocorreu um erro ao executar a listagem.' });
@@ -72,7 +67,7 @@ class UsersController {
 			}
 			const user = rows[0];
 
-			return response.status(404).json({ message: 'Usuário encontrado.', data: user });
+			return response.status(200).json({ message: 'Usuário encontrado.', data: user });
 		} catch (error) {
 			console.error(error);
 			if (error.message === "NotFoundError") {

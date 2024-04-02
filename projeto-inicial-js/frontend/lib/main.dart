@@ -9,7 +9,7 @@ void main() {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -31,7 +31,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => UsuariosScreen()),
+                  MaterialPageRoute(builder: (context) => const UsuariosScreen()),
                 );
               },
             ),

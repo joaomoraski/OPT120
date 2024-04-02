@@ -1,5 +1,6 @@
 import express from 'express';
 import UsersController from './controllers/usersController.js'
+import pool from "./connection.js";
 
 
 const routes = express.Router();
@@ -17,7 +18,6 @@ routes.post('/register', async (req,res) => {
 
 routes.get('/users', async (req,res) => {
     await usersController.getUsers(req, res)
-    res.send()
 });
 
 routes.get('/users/:id', async (req,res) => {
