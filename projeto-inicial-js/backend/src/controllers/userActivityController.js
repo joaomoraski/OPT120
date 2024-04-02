@@ -1,6 +1,6 @@
 import pool from '../connection.js'
 
-class ActivityController {
+class UserActivityController {
 
     async create(request, response) {
         const {
@@ -30,11 +30,15 @@ class ActivityController {
     };
 
 
-    async getActivities(request, response) {
+    async getUserActivities(request, response) {
         try {
-            const activitiesList = await pool.query('SELECT * FROM atividade');
+            const userActivitiesList =
+                await pool.query(
+                    'SELECT ua.id, u.nome, a.titulo, ua.entrega, ua.nota FROM usuario_atividade ua ' +
+                    'inner join usuario u on u.id = ua.usuario_id ' +
+                    'inner join atividade a on a.id = ua.atividade_id');
 
-            return response.status(200).send(activitiesList[0]);
+            return response.status(200).send(userActivitiesList[0]);
         } catch (error) {
             console.error(error);
             return response.status(500).json({ message: 'Ocorreu um erro ao executar a listagem.' });
@@ -125,4 +129,4 @@ class ActivityController {
     };
 }
 
-export default ActivityController
+export default UserActivityController

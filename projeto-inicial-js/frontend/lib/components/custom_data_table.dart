@@ -8,13 +8,13 @@ class CustomDataTable extends StatelessWidget {
   final void Function(int index) onDelete;
 
   const CustomDataTable({
-    Key? key,
+    super.key,
     required this.data,
     required this.title,
     required this.columnNames,
     required this.onEdit,
     required this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +33,7 @@ class CustomDataTable extends StatelessWidget {
                   color: Colors.grey.withOpacity(0.5),
                   spreadRadius: 2,
                   blurRadius: 5,
-                  offset: Offset(0, 3),
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
@@ -50,11 +50,11 @@ class CustomDataTable extends StatelessWidget {
 
   List<DataColumn> _buildColumns() {
     return columnNames.map((name) => DataColumn(label: Text(name))).toList() +
-        [DataColumn(label: Text('Editar')), DataColumn(label: Text('Deletar'))];
+        [const DataColumn(label: Text('Editar')), const DataColumn(label: Text('Deletar'))];
   }
 
   List<DataRow> _buildRows() {
-    return data!
+    return data
         .asMap()
         .entries
         .map(
@@ -80,17 +80,23 @@ class CustomDataTable extends StatelessWidget {
                 [
                   DataCell(
                     IconButton(
-                      icon: Icon(Icons.edit),
+                      icon: onEdit != null ? const Icon(Icons.edit) : const Icon(Icons.list),
                       onPressed: () {
-                        onEdit!(entry.key);
+                        if (onEdit != null) {
+                          onEdit(entry.key);
+                        } else {
+                          // Handle the case when onEdit is null
+                          // For example, navigate to a list view
+                          // or display a message
+                        }
                       },
                     ),
                   ),
                   DataCell(
                     IconButton(
-                      icon: Icon(Icons.delete),
+                      icon: const Icon(Icons.delete),
                       onPressed: () {
-                        onDelete!(entry.key);
+                        onDelete(entry.key);
                       },
                     ),
                   ),

@@ -1,6 +1,7 @@
 import express from 'express';
 import UsersController from './controllers/usersController.js'
 import ActivityController from "./controllers/activityController.js";
+import UserActivityController from "./controllers/userActivityController.js";
 
 
 const routes = express.Router();
@@ -23,14 +24,11 @@ routes.get('/users', async (req, res) => {
 routes.get('/users/:id', async (req, res) => {
     const userId = req.params.id; // Pega o id da request
     await usersController.getUser(userId, req, res)
-    res.send()
 });
 
 routes.delete('/users/:id', async (req, res) => {
     const userId = req.params.id; // Pega o id da request
     await usersController.deleteUser(userId, req, res);
-    res.send();
-
 });
 
 routes.put('/users/:id', async (req, res) => {
@@ -57,21 +55,24 @@ routes.get('/activity', async (req,res) => {
 routes.get('/activity/:id', async (req,res) => {
     const activityId = req.params.id; // Pega o id da request
     await activityController.getActivity(activityId, req, res)
-    res.send()
 });
 
 routes.delete('/activity/:id', async (req, res) => {
     const activityId = req.params.id; // Pega o id da request
     await activityController.deleteActivity(activityId, req, res);
     res.send();
-
 });
 
 routes.put('/activity/:id', async (req, res) => {
     const activityId = req.params.id;
     const updatedActivityData = req.body; // Pega os dados que serao atualizados da request
     await activityController.updateActivity(activityId, updatedActivityData, req, res);
-    res.send();
+});
+
+const userActivityController = new UserActivityController();
+
+routes.get('/userActivity', async (req,res) => {
+    await userActivityController.getUserActivities(req, res)
 });
 
 

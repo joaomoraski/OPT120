@@ -1,28 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/components/custom_data_table.dart';
+import 'package:frontend/services/userActivitiesService.dart';
 import 'package:frontend/services/userService.dart';
 
-class UsuariosScreen extends StatefulWidget {
-  const UsuariosScreen({super.key});
+class UsuarioAtividadesScreen extends StatefulWidget {
+  const UsuarioAtividadesScreen({super.key});
 
   @override
-  _UsuariosScreenState createState() => _UsuariosScreenState();
+  _UsuarioAtividadesScreenState createState() => _UsuarioAtividadesScreenState();
 }
 
-class _UsuariosScreenState extends State<UsuariosScreen> {
+class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
   final _formKey = GlobalKey<FormState>();
-  List<Map<String, dynamic>> _usuarios = [];
+  List<Map<String, dynamic>> _usuarioAtividades = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchUsuarios();
+    _fetchUsuariosFromAtividade();
   }
 
-  Future<void> _fetchUsuarios() async {
-    List<Map<String, dynamic>> users = await UserService.fetchUsers();
+  Future<void> _fetchUsuariosFromAtividade() async {
+    List<Map<String, dynamic>> userActivities = await UserActivitiesService.fetchUsuariosFromAtividade();
     setState(() {
-      _usuarios = users;
+      _usuarioAtividades = userActivities;
     });
   }
 
@@ -30,18 +31,18 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: CustomDataTable(
-        data: _usuarios,
-        title: 'Lista de Usuários',
-        columnNames: const ["Id", "Nome", "E-mail"],
+        data: _usuarioAtividades,
+        title: 'Lista de Atividades do Usuário',
+        columnNames: const ["Id", "Nome usuário", "Título da tarefa", "Data de entrega", "Nota"],
         onEdit: (index) async {
           _mostrarDialogoAdicionarUsuario(context,
               usuario:
-                  await UserService.getUser(_usuarios[index]['id']));
+                  await UserService.getUser(_usuarioAtividades[index]['id']));
         },
         onDelete: (index) async {
           _mostrarDialogExcluirUsuario(context,
               usuario:
-                  await UserService.getUser(_usuarios[index]['id']));
+                  await UserService.getUser(_usuarioAtividades[index]['id']));
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -148,7 +149,7 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
                         ),
                       );
                     }
-                    await _fetchUsuarios();
+                    await _fetchUsuariosFromAtividade();
                   } catch (e) {
                     print('Erro ao criar/editar usuário: $e');
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -218,7 +219,7 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
                     );
                   }
                   // Atualiza a lista de usuários
-                  await _fetchUsuarios();
+                  await _fetchUsuariosFromAtividade();
                 } catch (e) {
                   print('Erro ao deletar usuário: $e');
                   // Exibe um SnackBar de erro

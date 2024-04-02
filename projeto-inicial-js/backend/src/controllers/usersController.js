@@ -63,11 +63,12 @@ class UsersController {
 			connection.release(); // Fecha conexão depois da query
 
 			if (rows.length == 0) {
-				throw new Error("NotFoundError")
+				throw new Error("NotFoundError");
 			}
 			const user = rows[0];
 
-			return response.status(200).json({ message: 'Usuário encontrado.', data: user });
+
+			return response.status(200).json(user);
 		} catch (error) {
 			console.error(error);
 			if (error.message === "NotFoundError") {
@@ -126,7 +127,7 @@ class UsersController {
 			await connection.commit();
 			connection.release();
 
-			return response.status(200).json({ message: 'Usuário deletado com sucesso' });
+			return response.status(200).send();
 		} catch (error) {
 			console.error(error);
 			await connection.rollback(); // Rollback para caso tenha dado erro na atualização

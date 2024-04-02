@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/pages/AtividadePage.dart';
+import 'package:frontend/pages/UsuarioAtividadePage.dart';
 import 'package:frontend/pages/UsuarioPage.dart';
 import 'package:frontend/services/BaseServiceApi.dart';
 
@@ -52,7 +53,10 @@ class _MyHomePageState extends State<MyHomePage> {
             ElevatedButton(
               child: const Text('Usuário Atividade'),
               onPressed: () {
-                // TODO: Implementar navegação para página de usuário atividade
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const UsuarioAtividadesScreen()),
+                );
               },
             ),
           ],

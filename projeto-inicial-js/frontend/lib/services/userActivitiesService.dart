@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:frontend/services/BaseServiceApi.dart' as ApiService;
 
 
-class UserService {
+class UserActivitiesService {
   static Future<void> createUser(
       String nome, String email, String senha) async {
     try {
@@ -21,15 +21,15 @@ class UserService {
     }
   }
 
-  static Future<List<Map<String, dynamic>>> fetchUsers() async {
-    final url = Uri.parse('http://localhost:3333/users');
+  static Future<List<Map<String, dynamic>>> fetchUsuariosFromAtividade() async {
+    final url = Uri.parse('http://localhost:3333/userActivity');
     final response = await http.get(url); // espera a resposta
     if (response.statusCode == 200) {
       // Se deu bom decodifica o json para uma lista de tipo dinamico
       final List<dynamic> responseBody = jsonDecode(response.body);
-      final List<Map<String, dynamic>> users =
+      final List<Map<String, dynamic>> userActivities =
           responseBody.map((user) => user as Map<String, dynamic>).toList();
-      return users;
+      return userActivities;
     } else {
       print('Algo de errado aconteceu: ${response.statusCode}');
     }

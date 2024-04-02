@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 class BaseServiceApi {
   static late String _baseUrl;
-  static Map<String, String> _defaultHeaders = {
+  static final Map<String, String> _defaultHeaders = {
     'Content-Type': 'application/json; charset=UTF-8',
   };
 

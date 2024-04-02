@@ -35,6 +35,15 @@ class ActivityService {
     }
   }
 
+  static Future<void> deleteActivity(int id) async {
+    try {
+      await ApiService.BaseServiceApi.delete('activity/$id');
+    } catch (e) {
+      print('Error deleting activity: $e');
+      rethrow; // Re-throw the error to propagate it to the caller
+    }
+  }
+
   static Future<Map<String, dynamic>> getActivity(int id) async {
     try {
       return await ApiService.BaseServiceApi.get('activity/$id');

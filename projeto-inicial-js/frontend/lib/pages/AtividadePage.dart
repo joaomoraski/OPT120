@@ -3,7 +3,7 @@ import 'package:frontend/components/custom_data_table.dart';
 import 'package:frontend/services/activityService.dart';
 
 class AtividadesScreen extends StatefulWidget {
-  const AtividadesScreen({Key? key}) : super(key: key);
+  const AtividadesScreen({super.key});
 
   @override
   _AtividadesScreenState createState() => _AtividadesScreenState();
@@ -21,7 +21,7 @@ class _AtividadesScreenState extends State<AtividadesScreen> {
 
   Future<void> _fetchAtividades() async {
     List<Map<String, dynamic>> activities =
-        await ActivityService.fetchActivities();
+    await ActivityService.fetchActivities();
     setState(() {
       _atividades = activities;
     });
@@ -33,14 +33,16 @@ class _AtividadesScreenState extends State<AtividadesScreen> {
       body: CustomDataTable(
         data: _atividades,
         title: 'Lista de Atividades',
-        columnNames: ["Id", "Titulo", "Descrição", "Nota", "Data Limite"],
+        columnNames: const ["Id", "Titulo", "Descrição", "Nota", "Data Limite"],
         onEdit: (index) async {
-          _mostrarDialogoAdicionarAtividade(context, atividade: await ActivityService.getActivity(index));
-          print("ado ado");
+          _mostrarDialogoAdicionarAtividade(context,
+              atividade:
+              await ActivityService.getActivity(_atividades[index]['id']));
         },
-        onDelete: (index) {
-          print("nada");
-          // _mostrarDialogoAdicionarAtividade(context);
+        onDelete: (index) async {
+          _mostrarDialogExcluirAtividade(context,
+              atividade: await ActivityService.getActivity(
+                  _atividades[index]['id']));
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -61,9 +63,9 @@ class _AtividadesScreenState extends State<AtividadesScreen> {
     TextEditingController notaController = TextEditingController(
         text: atividade != null ? atividade['nota'].toString() : '');
     DateTime? selectedDate =
-        atividade != null && atividade['dataLimite'] != null
-            ? DateTime.parse(atividade['dataLimite'])
-            : null;
+    atividade != null && atividade['dataLimite'] != null
+        ? DateTime.parse(atividade['dataLimite'])
+        : null;
 
     return showDialog<void>(
       context: context,
@@ -101,7 +103,7 @@ class _AtividadesScreenState extends State<AtividadesScreen> {
                     controller: notaController,
                     decoration: const InputDecoration(labelText: 'Nota'),
                     keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    const TextInputType.numberWithOptions(decimal: true),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Por favor, insira uma nota';
@@ -123,7 +125,9 @@ class _AtividadesScreenState extends State<AtividadesScreen> {
                         context: context,
                         initialDate: selectedDate ?? DateTime.now(),
                         firstDate: DateTime.now(),
-                        lastDate: DateTime(DateTime.now().year + 10),
+                        lastDate: DateTime(DateTime
+                            .now()
+                            .year + 10),
                       );
                       if (pickedDate != null) {
                         setState(() {
@@ -192,6 +196,78 @@ class _AtividadesScreenState extends State<AtividadesScreen> {
                 }
               },
               child: const Text('Salvar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _mostrarDialogExcluirAtividade(BuildContext context,
+      {Map<String, dynamic>? atividade}) async {
+
+    final titulo = atividade?['titulo'];
+    final descricao = atividade?['descricao'];
+    final nota = atividade?['nota'];
+    final dataLimite = atividade?['dataLimite'];
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Deletar Atividade'),
+          content: Form(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text("Título: $titulo"),
+                  Text("Descrição: $descricao"),
+                  Text("Nota: $nota"),
+                  Text("Data Limite: $dataLimite"),
+                  const SizedBox(width: 10),
+                  const Text("Tem certeza que deseja deletar está atividade?",
+                      style: TextStyle(color: Colors.red))
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () async {
+                try {
+                  if (atividade != null) {
+                    // Chama o método updateActivity do ActivityService
+                    await ActivityService.deleteActivity(atividade['id']);
+                    // Exibe um SnackBar de sucesso
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Atividade excluida com sucesso'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                  // Atualiza a lista de atividades
+                  await _fetchAtividades();
+                } catch (e) {
+                  print('Erro ao deletar atividade: $e');
+                  // Exibe um SnackBar de erro
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Erro ao deletar atividade: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+                Navigator.of(context).pop();
+              },
+              child: const Text('Deletar'),
             ),
           ],
         );
