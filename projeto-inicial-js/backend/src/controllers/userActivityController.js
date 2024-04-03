@@ -9,7 +9,6 @@ class UserActivityController {
             entrega,
             nota
         } = request.body;
-        console.log('chegou aq');
 
         if (!usuario_id || !atividade_id || !nota || !entrega) {
             return response.status(400).json({message: 'Bota os campo certo ai'});
