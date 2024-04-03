@@ -80,11 +80,24 @@ routes.get('/userActivity', async (req,res) => {
     await userActivityController.getUserActivities(req, res)
 });
 
+routes.get('/userActivity/:id', async (req,res) => {
+    const activityId = req.params.id; // Pega o id da request
+    await userActivityController.getUserActivity(activityId, req, res)
+});
+
+routes.put('/userActivity/:id', async (req, res) => {
+    const userActivityId = req.params.id;
+    const updatedUserData = req.body; // Pega os dados que serao atualizados da request
+    await userActivityController.updateActivity(userActivityId, updatedUserData, req, res);
+    res.send();
+});
+
 routes.delete('/userActivity/:id', async (req, res) => {
     const userActivityId = req.params.id; // Pega o id da request
     await userActivityController.deleteUserActivity(userActivityId, req, res);
     res.send();
 });
+
 
 
 

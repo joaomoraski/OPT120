@@ -24,7 +24,55 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Aplicação de usuario e atividades',
-      home: const HomePage(),
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Center(child: Text('Aplicação de usuario e atividades')),
+          titleTextStyle: const TextStyle(
+              color: Colors.white,
+              fontFamily: 'Roboto',
+              fontWeight: FontWeight.bold,
+              fontSize: 20),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              ElevatedButton(
+                child: const Text('Usuários'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const UsuariosScreen()),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                child: const Text('Atividades'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const AtividadesScreen()),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                child: const Text('Usuário Atividade'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const UsuarioAtividadesScreen()),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
       theme: ThemeData(
         primaryColor: Colors.blue,
         // Define a cor primária do aplicativo
@@ -41,65 +89,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     borderRadius: BorderRadius.circular(8.0)))),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.blue, // Define a cor da barra de navegação
-        ),
-      ),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Center(child: Text('Aplicação de usuario e atividades')),
-        titleTextStyle: const TextStyle(
-            color: Colors.white,
-            fontFamily: 'Roboto',
-            fontWeight: FontWeight.bold,
-            fontSize: 20),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ElevatedButton(
-              child: const Text('Usuários'),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const UsuariosScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              child: const Text('Atividades'),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const AtividadesScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              child: const Text('Usuário Atividade'),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const UsuarioAtividadesScreen()),
-                );
-              },
-            ),
-          ],
         ),
       ),
     );

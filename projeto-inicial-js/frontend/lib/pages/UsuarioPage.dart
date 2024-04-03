@@ -35,13 +35,11 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
         columnNames: const ["Id", "Nome", "E-mail"],
         onEdit: (index) async {
           _mostrarDialogoAdicionarUsuario(context,
-              usuario:
-                  await UserService.getUser(_usuarios[index]['id']));
+              usuario: await UserService.getUser(_usuarios[index]['id']));
         },
         onDelete: (index) async {
           _mostrarDialogExcluirUsuario(context,
-              usuario:
-                  await UserService.getUser(_usuarios[index]['id']));
+              usuario: await UserService.getUser(_usuarios[index]['id']));
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -99,10 +97,12 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
                     decoration: const InputDecoration(labelText: 'Senha'),
                     obscureText: true,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, insira uma senha';
-                      } else if (value.length < 4) {
-                        return 'Por favor, insira uma senha com 4 ou mais caracteres.';
+                      if (usuario == null) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor, insira uma senha';
+                        } else if (value.length < 4) {
+                          return 'Por favor, insira uma senha com 4 ou mais caracteres.';
+                        }
                       }
                       return null;
                     },

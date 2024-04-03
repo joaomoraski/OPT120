@@ -58,13 +58,13 @@ class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
         ],
         onEdit: (index) async {
           _mostrarDialogAdicionarUsuarioAtividade(context,
-              usuarioAtividade:
-                  await UserService.getUser(_usuarioAtividades[index]['id']));
+              usuarioAtividade: await UserActivitiesService.getUserActivity(
+                  _usuarioAtividades[index]['id']));
         },
         onDelete: (index) async {
-          _mostrarDialogExcluirUsuario(context,
-              usuario:
-                  await UserService.getUser(_usuarioAtividades[index]['id']));
+          _mostrarDialogExcluirRelacaoUsuarioAtividade(context,
+              usuarioAtividade: await UserActivitiesService.getUserActivity(
+                  _usuarioAtividades[index]['id']));
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -92,19 +92,21 @@ class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
             ? DateTime.parse(usuarioAtividade['entrega'])
             : null;
 
-    // TextEditingController nomeController =
-    //     TextEditingController(text: usuarioAtividade != null ? usuarioAtividade['nome'] : '');
-    // TextEditingController emailController =
-    //     TextEditingController(text: usuarioAtividade != null ? usuarioAtividade['email'] : '');
-    // TextEditingController senhaController = TextEditingController();
+    if (usuarioAtividade != null) {
+      for (var usuario in usuarios) {
+        if (usuario['id'] == usuarioAtividade['usuario_id']) {
+          usuariosSelecionados.add(usuario);
+        }
+      }
+    }
 
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(usuarioAtividade != null
-              ? 'Editar Usuário'
-              : 'Adicionar Usuário'),
+              ? 'Editar Relação'
+              : 'Adicionar Relação'),
           content: Form(
             key: _formKey,
             child: SingleChildScrollView(
@@ -116,7 +118,7 @@ class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
                   const SizedBox(height: 10),
                   DropdownButton<Map<String, dynamic>>(
                       isExpanded: true,
-                      value: atividadeSelecionada,
+                      value: atividadeSelecionada?['titulo'],
                       onChanged: (Map<String, dynamic>? newValue) {
                         setState(() {
                           atividadeSelecionada = newValue;
@@ -130,6 +132,9 @@ class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
                           child: Text(atividade['titulo']),
                         );
                       }).toList()),
+                  const Text('Selecione um usuário: ',
+                      style: TextStyle(fontSize: 16)),
+                  const SizedBox(height: 10),
                   DropdownButton<Map<String, dynamic>>(
                     isExpanded: true,
                     value: null,
@@ -165,10 +170,10 @@ class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
                     },
                   ),
                   ListTile(
-                    title: selectedDate != null
+                    title: const Text('Data de entrega'),
+                    subtitle: selectedDate != null
                         ? Text(selectedDate.toString())
                         : null,
-                    subtitle: Text('Data de entrega'),
                     onTap: () async {
                       final DateTime? pickedDate = await showDatePicker(
                         context: context,
@@ -201,26 +206,43 @@ class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
                   DateTime dataEntrega = selectedDate ?? DateTime.now();
 
                   try {
-                    // Chama o método createUser do UserService
-                    await UserActivitiesService.createUserActivity(
-                        usuariosSelecionados,
-                        atividadeSelecionada,
-                        nota,
-                        dataEntrega);
-                    // Atualiza a lista de usuários
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                            'Usuário e atividade relacionados com sucesso'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
+                    if (usuarioAtividade != null) {
+                      // Chama o método updateActivity do ActivityService
+                      await UserActivitiesService.updateUserActivity(
+                          usuarioAtividade['id'],
+                          usuariosSelecionados,
+                          atividadeSelecionada,
+                          nota,
+                          dataEntrega);
+                      // Exibe um SnackBar de sucesso
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Usuário atualizado com sucesso!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    } else {
+                      await UserActivitiesService.createUserActivity(
+                          usuariosSelecionados,
+                          atividadeSelecionada,
+                          nota,
+                          dataEntrega);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'Usuário e atividade relacionados com sucesso'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
                     await _fetchUsuariosFromAtividade();
                   } catch (e) {
-                    print('Erro ao criar/editar usuário: $e');
+                    print(
+                        'Erro ao criar/editar relação de usuarios e atividades: $e');
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Erro ao criar/editar usuário: $e'),
+                        content: Text(
+                            'Erro ao criar/editar relação de usuarios e atividades: $e'),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -237,11 +259,14 @@ class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
     );
   }
 
-  Future<void> _mostrarDialogExcluirUsuario(BuildContext context,
-      {Map<String, dynamic>? usuario}) async {
-    final id = usuario?['id'];
-    final nome = usuario?['nome'];
-    final email = usuario?['email'];
+  Future<void> _mostrarDialogExcluirRelacaoUsuarioAtividade(
+      BuildContext context,
+      {Map<String, dynamic>? usuarioAtividade}) async {
+    final id = usuarioAtividade?['id'];
+    final nome = usuarioAtividade?['nome'];
+    final titulo = usuarioAtividade?['titulo'];
+    final entrega = usuarioAtividade?['entrega'];
+    final nota = usuarioAtividade?['nota'];
 
     return showDialog<void>(
       context: context,
@@ -254,10 +279,12 @@ class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text("Id: $id"),
-                  Text("Nome: $nome"),
-                  Text("E-mail: $email"),
+                  Text("Nome usuário: $nome"),
+                  Text("Titulo tarefa: $titulo"),
+                  Text("Data de Entrega: $entrega"),
+                  Text("Nome: $nota"),
                   const SizedBox(width: 10),
-                  const Text("Tem certeza que deseja deletar este usuário?",
+                  const Text("Tem certeza que deseja deletar esta relação?",
                       style: TextStyle(color: Colors.red))
                 ],
               ),
@@ -273,13 +300,13 @@ class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
             TextButton(
               onPressed: () async {
                 try {
-                  if (usuario != null) {
+                  if (usuarioAtividade != null) {
                     // Chama o método updateActivity do ActivityService
-                    await UserService.deleteUser(usuario['id']);
+                    await UserActivitiesService.deleteUserActivity(usuarioAtividade['id']);
                     // Exibe um SnackBar de sucesso
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Usuário excluido com sucesso'),
+                        content: Text('Relação excluida com sucesso'),
                         backgroundColor: Colors.green,
                       ),
                     );
@@ -287,11 +314,11 @@ class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
                   // Atualiza a lista de usuários
                   await _fetchUsuariosFromAtividade();
                 } catch (e) {
-                  print('Erro ao deletar usuário: $e');
+                  print('Erro ao deletar relação: $e');
                   // Exibe um SnackBar de erro
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Erro ao deletar usuário: $e'),
+                      content: Text('Erro ao deletar relação: $e'),
                       backgroundColor: Colors.red,
                     ),
                   );

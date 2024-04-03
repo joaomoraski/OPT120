@@ -86,6 +86,12 @@ class UsersController {
 			await connection.beginTransaction();
 
 			// Criando a sql de update dinamicamente baseado nos dados para evitar sql inject
+			if(data.password === null || data.password === undefined || data.password === '') {
+				delete data.password
+			} else {
+				const saltRounds = 10;
+				data.password = await bcrypt.hash(data.password, saltRounds);
+			}
 
 			let updateFields = '';
 			const keys = Object.keys(data);

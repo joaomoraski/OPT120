@@ -53,7 +53,13 @@ class UserActivityController {
     async getUserActivity(userActivityId, request, response) {
         try {
             const connection = await pool.getConnection();
-            const [rows] = await connection.query('SELECT * FROM usuario_atividade WHERE id = ?', [userActivityId]);
+
+
+            const [rows] = await connection.query(
+                'SELECT ua.id, ua.usuario_id, ua.atividade_id, u.nome, a.titulo, ua.entrega, ua.nota FROM usuario_atividade ua ' +
+                'inner join usuario u on u.id = ua.usuario_id ' +
+                'inner join atividade a on a.id = ua.atividade_id ' +
+                'WHERE ua.id = ?', [userActivityId]);
             connection.release(); // Fecha conexão depois da query
 
             if (rows.length === 0) {
@@ -65,7 +71,7 @@ class UserActivityController {
         } catch (error) {
             console.error(error);
             if (error.message === "NotFoundError") {
-                return response.status(404).json({ message: 'Ativdade não encontrado.' });
+                return response.status(404).json({ message: 'Relação não encontrada.' });
             } else {
                 return response.status(404).json({ message: 'Aconteceu algum erro ai.' });
             }
@@ -89,7 +95,7 @@ class UserActivityController {
                 }
             }
             const updateValues = Object.values(data);
-            const queryString = `UPDATE atividade
+            const queryString = `UPDATE usuario_atividade
                                  SET ${updateFields}
                                  WHERE id = ?`;
 
@@ -97,7 +103,7 @@ class UserActivityController {
             await connection.commit();
             connection.release();
 
-            return response.status(200).json({ message: 'Atividade atualizado com sucesso' });
+            return response.status(200).json({ message: 'Relação atualizada com sucesso' });
         } catch (error) {
             console.error(error);
             await connection.rollback(); // Rollback para caso tenha dado erro na atualização

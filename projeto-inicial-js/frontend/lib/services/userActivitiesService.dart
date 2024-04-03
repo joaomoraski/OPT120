@@ -22,7 +22,6 @@ class UserActivitiesService {
         'nota': nota,
         'entrega': DateFormat('yyyy-MM-dd').format(dataEntrega),
       };
-      print(payload);
       await BaseServiceApi.post('userActivity/create', payload);
     } catch (e) {
       print('Erro ao criar usuario: $e');
@@ -45,33 +44,41 @@ class UserActivitiesService {
     return [];
   }
 
-  static Future<void> updateUser(int id, String nome, String email,
-      String password) async {
+  static Future<void> updateUserActivity(int id,
+      List<Map<String, dynamic>> usuariosSelecionados,
+      Map<String, dynamic>? atividadeSelecionada,
+      double nota,
+      DateTime dataEntrega) async {
     try {
+      List<int> ids = [];
+      for (var element in usuariosSelecionados) {
+        ids.add(element['id']);
+      }
       final payload = {
-        'nome': nome,
-        'email': email,
-        'password': password,
+        'usuario_id': ids,
+        'atividade_id': atividadeSelecionada?['id'],
+        'nota': nota,
+        'entrega': DateFormat('yyyy-MM-dd').format(dataEntrega),
       };
-      await ApiService.BaseServiceApi.put('users/$id', payload);
+      await ApiService.BaseServiceApi.put('userActivity/$id', payload);
     } catch (e) {
       print('Error updating user: $e');
       rethrow; // Re-throw the error to propagate it to the caller
     }
   }
 
-  static Future<void> deleteUser(int id) async {
+  static Future<void> deleteUserActivity(int id) async {
     try {
-      await ApiService.BaseServiceApi.delete('users/$id');
+      await ApiService.BaseServiceApi.delete('userActivity/$id');
     } catch (e) {
       print('Error deleting activity: $e');
       rethrow; // Re-throw the error to propagate it to the caller
     }
   }
 
-  static Future<Map<String, dynamic>> getUser(int id) async {
+  static Future<Map<String, dynamic>> getUserActivity(int id) async {
     try {
-      return await ApiService.BaseServiceApi.get('users/$id');
+      return await ApiService.BaseServiceApi.get('userActivity/$id');
     } catch (e) {
       print('Error getting activity: $e');
       rethrow; // Re-throw the error to propagate it to the caller
