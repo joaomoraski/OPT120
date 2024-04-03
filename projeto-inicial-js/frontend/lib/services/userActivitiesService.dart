@@ -1,20 +1,29 @@
 import 'dart:convert';
 
+import 'package:frontend/services/BaseServiceApi.dart' as ApiService;
 import 'package:frontend/services/BaseServiceApi.dart';
 import 'package:http/http.dart' as http;
-import 'package:frontend/services/BaseServiceApi.dart' as ApiService;
-
+import 'package:intl/intl.dart';
 
 class UserActivitiesService {
-  static Future<void> createUser(
-      String nome, String email, String senha) async {
+  static Future<void> createUserActivity(
+      List<Map<String, dynamic>> usuariosSelecionados,
+      Map<String, dynamic>? atividadeSelecionada,
+      double nota,
+      DateTime dataEntrega) async {
     try {
+      List<int> ids = [];
+      for (var element in usuariosSelecionados) {
+        ids.add(element['id']);
+      }
       final payload = {
-        'name': nome,
-        'email': email,
-        'password': senha,
+        'usuario_id': ids,
+        'atividade_id': atividadeSelecionada?['id'],
+        'nota': nota,
+        'entrega': DateFormat('yyyy-MM-dd').format(dataEntrega),
       };
-      await BaseServiceApi.post('users/create', payload);
+      print(payload);
+      await BaseServiceApi.post('userActivity/create', payload);
     } catch (e) {
       print('Erro ao criar usuario: $e');
       rethrow;
@@ -28,7 +37,7 @@ class UserActivitiesService {
       // Se deu bom decodifica o json para uma lista de tipo dinamico
       final List<dynamic> responseBody = jsonDecode(response.body);
       final List<Map<String, dynamic>> userActivities =
-          responseBody.map((user) => user as Map<String, dynamic>).toList();
+      responseBody.map((user) => user as Map<String, dynamic>).toList();
       return userActivities;
     } else {
       print('Algo de errado aconteceu: ${response.statusCode}');
@@ -36,7 +45,8 @@ class UserActivitiesService {
     return [];
   }
 
-  static Future<void> updateUser(int id, String nome, String email, String password) async {
+  static Future<void> updateUser(int id, String nome, String email,
+      String password) async {
     try {
       final payload = {
         'nome': nome,
@@ -67,6 +77,4 @@ class UserActivitiesService {
       rethrow; // Re-throw the error to propagate it to the caller
     }
   }
-
 }
-

@@ -4,13 +4,14 @@ class UserActivityController {
 
     async create(request, response) {
         const {
-            titulo,
-            descricao,
-            nota,
-            dataLimite
+            usuario_id,
+            atividade_id,
+            entrega,
+            nota
         } = request.body;
+        console.log('chegou aq');
 
-        if (!titulo || !descricao || !nota || !dataLimite) {
+        if (!usuario_id || !atividade_id || !nota || !entrega) {
             return response.status(400).json({message: 'Bota os campo certo ai'});
         }
 
@@ -18,14 +19,17 @@ class UserActivityController {
             const connection = await pool.getConnection();
             await connection.beginTransaction();
 
-            const [result] = await connection.query('INSERT INTO atividade (titulo, descricao, nota, dataLimite) VALUES (?, ?, ?, ?)', [titulo, descricao, nota, dataLimite]);
-
+            for (const id of usuario_id) {
+                await connection.query(
+                    'INSERT INTO usuario_atividade (usuario_id, atividade_id, entrega, nota) VALUES (?, ?, ?, ?)',
+                    [id, atividade_id, entrega, nota]);
+            }
             await connection.commit();
 
-            return response.status(201).json({ message: 'Atividade criado com sucesso.' });
+            return response.status(201).json({ message: 'Os usuários foram relacionados ao usuário com sucesso.' });
         } catch (error) {
             console.error(error);
-            return response.status(500).json({ message: 'Ocorreu um erro ao criar o usuário.' });
+            return response.status(500).json({ message: 'Ocorreu um erro ao tentar relacionar usuário e atividades.' });
         }
     };
 
@@ -46,10 +50,10 @@ class UserActivityController {
     };
 
 
-    async getActivity(activityId, request, response) {
+    async getUserActivity(userActivityId, request, response) {
         try {
             const connection = await pool.getConnection();
-            const [rows] = await connection.query('SELECT * FROM atividade WHERE id = ?', [activityId]);
+            const [rows] = await connection.query('SELECT * FROM usuario_atividade WHERE id = ?', [userActivityId]);
             connection.release(); // Fecha conexão depois da query
 
             if (rows.length === 0) {
@@ -107,12 +111,12 @@ class UserActivityController {
         }
     };
 
-    async deleteActivity(activityId, request, response) {
+    async deleteUserActivity(userActivityId, request, response) {
         try {
             const connection = await pool.getConnection();
             await connection.beginTransaction();
 
-            await connection.query('DELETE FROM atividade WHERE id = ?', [activityId]);
+            await connection.query('DELETE FROM usuario_atividade WHERE id = ?', [userActivityId]);
             await connection.commit();
             connection.release();
 

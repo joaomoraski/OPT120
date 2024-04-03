@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/components/custom_data_table.dart';
+import 'package:frontend/services/activityService.dart';
 import 'package:frontend/services/userActivitiesService.dart';
 import 'package:frontend/services/userService.dart';
 
@@ -7,12 +8,15 @@ class UsuarioAtividadesScreen extends StatefulWidget {
   const UsuarioAtividadesScreen({super.key});
 
   @override
-  _UsuarioAtividadesScreenState createState() => _UsuarioAtividadesScreenState();
+  _UsuarioAtividadesScreenState createState() =>
+      _UsuarioAtividadesScreenState();
 }
 
 class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
   final _formKey = GlobalKey<FormState>();
   List<Map<String, dynamic>> _usuarioAtividades = [];
+  List<Map<String, dynamic>> _usuarios = [];
+  List<Map<String, dynamic>> _atividades = [];
 
   @override
   void initState() {
@@ -20,8 +24,20 @@ class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
     _fetchUsuariosFromAtividade();
   }
 
+  Future<List<Map<String, dynamic>>> _fetchUsuarios() async {
+    List<Map<String, dynamic>> users = await UserService.fetchUsers();
+    return users;
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchAtividades() async {
+    List<Map<String, dynamic>> atividades =
+        await ActivityService.fetchActivities();
+    return atividades;
+  }
+
   Future<void> _fetchUsuariosFromAtividade() async {
-    List<Map<String, dynamic>> userActivities = await UserActivitiesService.fetchUsuariosFromAtividade();
+    List<Map<String, dynamic>> userActivities =
+        await UserActivitiesService.fetchUsuariosFromAtividade();
     setState(() {
       _usuarioAtividades = userActivities;
     });
@@ -33,10 +49,16 @@ class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
       body: CustomDataTable(
         data: _usuarioAtividades,
         title: 'Lista de Atividades do Usuário',
-        columnNames: const ["Id", "Nome usuário", "Título da tarefa", "Data de entrega", "Nota"],
+        columnNames: const [
+          "Id",
+          "Nome usuário",
+          "Título da tarefa",
+          "Data de entrega",
+          "Nota"
+        ],
         onEdit: (index) async {
-          _mostrarDialogoAdicionarUsuario(context,
-              usuario:
+          _mostrarDialogAdicionarUsuarioAtividade(context,
+              usuarioAtividade:
                   await UserService.getUser(_usuarioAtividades[index]['id']));
         },
         onDelete: (index) async {
@@ -47,65 +69,118 @@ class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _mostrarDialogoAdicionarUsuario(context);
+          _mostrarDialogAdicionarUsuarioAtividade(context);
         },
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  Future<void> _mostrarDialogoAdicionarUsuario(BuildContext context,
-      {Map<String, dynamic>? usuario}) async {
-    TextEditingController nomeController =
-        TextEditingController(text: usuario != null ? usuario['nome'] : '');
-    TextEditingController emailController =
-        TextEditingController(text: usuario != null ? usuario['email'] : '');
-    TextEditingController senhaController = TextEditingController();
+  Future<void> _mostrarDialogAdicionarUsuarioAtividade(BuildContext context,
+      {Map<String, dynamic>? usuarioAtividade}) async {
+    List<Map<String, dynamic>> usuarios = await _fetchUsuarios();
+    List<Map<String, dynamic>> atividades = await _fetchAtividades();
+    List<Map<String, dynamic>> usuariosSelecionados = [];
+    Map<String, dynamic>? atividadeSelecionada;
+
+    TextEditingController notaController = TextEditingController(
+        text: usuarioAtividade != null
+            ? usuarioAtividade['nota'].toString()
+            : '');
+    DateTime? selectedDate =
+        usuarioAtividade != null && usuarioAtividade['entrega'] != null
+            ? DateTime.parse(usuarioAtividade['entrega'])
+            : null;
+
+    // TextEditingController nomeController =
+    //     TextEditingController(text: usuarioAtividade != null ? usuarioAtividade['nome'] : '');
+    // TextEditingController emailController =
+    //     TextEditingController(text: usuarioAtividade != null ? usuarioAtividade['email'] : '');
+    // TextEditingController senhaController = TextEditingController();
 
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(usuario != null ? 'Editar Usuário' : 'Adicionar Usuário'),
+          title: Text(usuarioAtividade != null
+              ? 'Editar Usuário'
+              : 'Adicionar Usuário'),
           content: Form(
             key: _formKey,
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
+                  const Text('Selecione uma atividade: ',
+                      style: TextStyle(fontSize: 16)),
+                  const SizedBox(height: 10),
+                  DropdownButton<Map<String, dynamic>>(
+                      isExpanded: true,
+                      value: atividadeSelecionada,
+                      onChanged: (Map<String, dynamic>? newValue) {
+                        setState(() {
+                          atividadeSelecionada = newValue;
+                        });
+                      },
+                      items: atividades
+                          .map<DropdownMenuItem<Map<String, dynamic>>>(
+                              (atividade) {
+                        return DropdownMenuItem<Map<String, dynamic>>(
+                          value: atividade,
+                          child: Text(atividade['titulo']),
+                        );
+                      }).toList()),
+                  DropdownButton<Map<String, dynamic>>(
+                    isExpanded: true,
+                    value: null,
+                    onChanged: (Map<String, dynamic>? newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          usuariosSelecionados.add(newValue);
+                        });
+                      }
+                    },
+                    items: usuarios
+                        .map<DropdownMenuItem<Map<String, dynamic>>>((usuario) {
+                      return DropdownMenuItem<Map<String, dynamic>>(
+                        value: usuario,
+                        child: Text(usuario['nome']),
+                      );
+                    }).toList(),
+                  ),
                   TextFormField(
-                    controller: nomeController,
-                    decoration: const InputDecoration(labelText: 'Nome'),
+                    controller: notaController,
+                    decoration: const InputDecoration(labelText: 'Nota'),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Por favor, insira um nome';
+                        return 'Por favor, insira uma nota';
+                      }
+                      final double nota = double.tryParse(value)!;
+                      if (nota < 0 || nota > 10) {
+                        return 'A nota deve estar entre 0 e 10';
                       }
                       return null;
                     },
                   ),
-                  TextFormField(
-                    controller: emailController,
-                    decoration: const InputDecoration(labelText: 'E-mail'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, insira um e-mail';
-                      } else if (!value.contains('@') || !value.contains('.')) {
-                        return 'Por favor, insira um e-mail valido';
+                  ListTile(
+                    title: selectedDate != null
+                        ? Text(selectedDate.toString())
+                        : null,
+                    subtitle: Text('Data de entrega'),
+                    onTap: () async {
+                      final DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate ?? DateTime.now(),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime(DateTime.now().year + 10),
+                      );
+                      if (pickedDate != null) {
+                        setState(() {
+                          selectedDate = pickedDate;
+                        });
                       }
-                      return null;
-                    },
-                  ),
-                  TextFormField(
-                    controller: senhaController,
-                    decoration: const InputDecoration(labelText: 'Senha'),
-                    obscureText: true,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, insira uma senha';
-                      } else if (value.length < 4) {
-                        return 'Por favor, insira uma senha com 4 ou mais caracteres.';
-                      }
-                      return null;
                     },
                   ),
                 ],
@@ -122,33 +197,24 @@ class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
             TextButton(
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
-                  String nome = nomeController.text;
-                  String email = emailController.text;
-                  String senha = senhaController.text;
+                  double nota = double.tryParse(notaController.text) ?? 0;
+                  DateTime dataEntrega = selectedDate ?? DateTime.now();
 
                   try {
-                    if (usuario != null) {
-                      // Chama o método updateActivity do ActivityService
-                      await UserService.updateUser(
-                          usuario['id'], nome, email, senha);
-                      // Exibe um SnackBar de sucesso
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Usuário atualizado com sucesso!'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    } else {
-                      // Chama o método createUser do UserService
-                      await UserService.createUser(nome, email, senha);
-                      // Atualiza a lista de usuários
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Usuário criado com sucesso: $nome'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    }
+                    // Chama o método createUser do UserService
+                    await UserActivitiesService.createUserActivity(
+                        usuariosSelecionados,
+                        atividadeSelecionada,
+                        nota,
+                        dataEntrega);
+                    // Atualiza a lista de usuários
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'Usuário e atividade relacionados com sucesso'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
                     await _fetchUsuariosFromAtividade();
                   } catch (e) {
                     print('Erro ao criar/editar usuário: $e');

@@ -68,7 +68,7 @@ class BaseServiceApi {
     if (response.statusCode == 200) {
       return;
     } else {
-      throw Exception('Failed to perform DELETE request');
+      throw Exception(jsonDecode(response.body)["message"]);
     }
   }
 }

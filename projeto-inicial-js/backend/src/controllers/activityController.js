@@ -104,9 +104,17 @@ class ActivityController {
     };
 
     async deleteActivity(activityId, request, response) {
+        const connection = await pool.getConnection();
         try {
-            const connection = await pool.getConnection();
             await connection.beginTransaction();
+
+            const [rows, fields] = await connection.query("select count(id) from usuario_atividade where atividade_id = ?", [activityId])
+
+            if (rows[0]['count(id)'] > 0) {
+                await connection.commit();
+                connection.release();
+                return response.status(403).json({ message: 'Você não pode apagar uma atividade relacionada a algum usuário.' });
+            }
 
             await connection.query('DELETE FROM atividade WHERE id = ?', [activityId]);
             await connection.commit();
@@ -116,11 +124,7 @@ class ActivityController {
         } catch (error) {
             console.error(error);
             await connection.rollback(); // Rollback para caso tenha dado erro na atualização
-            if (error.name === 'NotFoundError') {
-                return response.status(404).json({ message: 'Atividade não encontrada.' });
-            } else {
-                return response.status(500).json({ message: 'Erro ao atualizar a atividade.' });
-            }
+            return response.status(500).json({ message: 'Erro ao atualizar a atividade.' });
         }
     };
 }

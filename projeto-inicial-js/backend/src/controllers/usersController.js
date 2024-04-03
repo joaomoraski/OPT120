@@ -118,11 +118,18 @@ class UsersController {
 
 
 	async deleteUser(userId, request, response) {
+		const connection = await pool.getConnection();
 		try {
-			const connection = await pool.getConnection();
 			await connection.beginTransaction();
 
-			// TODO criar o safe delete dps
+			const [rows, fields] = await connection.query("select count(id) from usuario_atividade where usuario_id = ?", [userId])
+
+			if (rows[0]['count(id)'] > 0) {
+				await connection.commit();
+				connection.release();
+				return response.status(403).json({ message: 'Você não pode apagar um usuario relacionado a alguma atividade.' });
+			}
+
 			await connection.query('DELETE FROM usuario WHERE id = ?', [userId]);
 			await connection.commit();
 			connection.release();

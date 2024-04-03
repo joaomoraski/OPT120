@@ -1,11 +1,12 @@
 import 'dart:convert';
 
-import 'package:intl/intl.dart';
-import 'package:http/http.dart' as http;
 import 'package:frontend/services/BaseServiceApi.dart' as ApiService;
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class ActivityService {
-  static Future<void> createActivity(String titulo, String descricao, double nota, DateTime dataLimite) async {
+  static Future<void> createActivity(
+      String titulo, String descricao, double nota, DateTime dataLimite) async {
     try {
       final payload = {
         'titulo': titulo,
@@ -20,7 +21,8 @@ class ActivityService {
     }
   }
 
-  static Future<void> updateActivity(int id, String titulo, String descricao, double nota, DateTime dataLimite) async {
+  static Future<void> updateActivity(int id, String titulo, String descricao,
+      double nota, DateTime dataLimite) async {
     try {
       final payload = {
         'titulo': titulo,
@@ -59,8 +61,9 @@ class ActivityService {
     if (response.statusCode == 200) {
       // Se deu bom decodifica o json para uma lista de tipo dinamico
       final List<dynamic> responseBody = jsonDecode(response.body);
-      final List<Map<String, dynamic>> activities =
-          responseBody.map((activity) => activity as Map<String, dynamic>).toList();
+      final List<Map<String, dynamic>> activities = responseBody
+          .map((activity) => activity as Map<String, dynamic>)
+          .toList();
       return activities;
     } else {
       print('Algo de errado aconteceu: ${response.statusCode}');

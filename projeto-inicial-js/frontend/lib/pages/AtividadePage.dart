@@ -260,7 +260,7 @@ class _AtividadesScreenState extends State<AtividadesScreen> {
                   // Exibe um SnackBar de erro
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Erro ao deletar atividade: $e'),
+                      content: Text('Erro ao deletar atividade | $e'),
                       backgroundColor: Colors.red,
                     ),
                   );

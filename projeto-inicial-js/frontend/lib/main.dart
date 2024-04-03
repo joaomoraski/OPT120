@@ -22,9 +22,46 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Aplicação de usuario e atividades',
+      home: const HomePage(),
+      theme: ThemeData(
+        primaryColor: Colors.blue,
+        // Define a cor primária do aplicativo
+        highlightColor: Colors.green,
+        // Define a cor de destaque do aplicativo
+        fontFamily: 'Roboto',
+        // Define a fonte padrão do aplicativo
+        elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+                textStyle: TextStyle(fontSize: 16.0),
+                minimumSize: Size(200, 48),
+                padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0)))),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.blue, // Define a cor da barra de navegação
+        ),
+      ),
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  const HomePage({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Flutter Demo'),
+        title: const Center(child: Text('Aplicação de usuario e atividades')),
+        titleTextStyle: const TextStyle(
+            color: Colors.white,
+            fontFamily: 'Roboto',
+            fontWeight: FontWeight.bold,
+            fontSize: 20),
       ),
       body: Center(
         child: Column(
@@ -35,7 +72,8 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const UsuariosScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const UsuariosScreen()),
                 );
               },
             ),
@@ -45,7 +83,8 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const AtividadesScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const AtividadesScreen()),
                 );
               },
             ),
@@ -55,7 +94,8 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const UsuarioAtividadesScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const UsuarioAtividadesScreen()),
                 );
               },
             ),

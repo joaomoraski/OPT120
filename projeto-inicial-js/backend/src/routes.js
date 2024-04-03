@@ -71,9 +71,22 @@ routes.put('/activity/:id', async (req, res) => {
 
 const userActivityController = new UserActivityController();
 
+routes.post('/userActivity/create', async (req, res) => {
+    await userActivityController.create(req, res)
+    res.send()
+});
+
 routes.get('/userActivity', async (req,res) => {
     await userActivityController.getUserActivities(req, res)
 });
+
+routes.delete('/userActivity/:id', async (req, res) => {
+    const userActivityId = req.params.id; // Pega o id da request
+    await userActivityController.deleteUserActivity(userActivityId, req, res);
+    res.send();
+});
+
+
 
 
 export default routes;
