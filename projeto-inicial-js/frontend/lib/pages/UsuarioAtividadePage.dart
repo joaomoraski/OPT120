@@ -81,6 +81,7 @@ class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
     List<Map<String, dynamic>> usuarios = await _fetchUsuarios();
     List<Map<String, dynamic>> atividades = await _fetchAtividades();
     List<Map<String, dynamic>> usuariosSelecionados = [];
+    String usuariosSelecionadosText = '';
     Map<String, dynamic>? atividadeSelecionada;
 
     TextEditingController notaController = TextEditingController(
@@ -100,161 +101,180 @@ class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
       }
     }
 
-    return showDialog<void>(
+    String getNomesUsuariosSelecionados() {
+      List<String> nomesUsuarios = usuariosSelecionados.map((usuario) {
+        return usuario['nome'] as String; // Extrai o nome do usuário do mapa
+      }).toList();
+      return nomesUsuarios.join(', ');
+    }
+
+    return showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(usuarioAtividade != null
-              ? 'Editar Relação'
-              : 'Adicionar Relação'),
-          content: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  const Text('Selecione uma atividade: ',
-                      style: TextStyle(fontSize: 16)),
-                  const SizedBox(height: 10),
-                  DropdownButton<Map<String, dynamic>>(
-                      isExpanded: true,
-                      value: atividadeSelecionada?['titulo'],
-                      onChanged: (Map<String, dynamic>? newValue) {
-                        setState(() {
-                          atividadeSelecionada = newValue;
-                        });
-                      },
-                      items: atividades
-                          .map<DropdownMenuItem<Map<String, dynamic>>>(
-                              (atividade) {
-                        return DropdownMenuItem<Map<String, dynamic>>(
-                          value: atividade,
-                          child: Text(atividade['titulo']),
-                        );
-                      }).toList()),
-                  const Text('Selecione um usuário: ',
-                      style: TextStyle(fontSize: 16)),
-                  const SizedBox(height: 10),
-                  DropdownButton<Map<String, dynamic>>(
-                    isExpanded: true,
-                    value: null,
-                    onChanged: (Map<String, dynamic>? newValue) {
-                      if (newValue != null) {
-                        setState(() {
-                          usuariosSelecionados.add(newValue);
-                        });
-                      }
-                    },
-                    items: usuarios
-                        .map<DropdownMenuItem<Map<String, dynamic>>>((usuario) {
-                      return DropdownMenuItem<Map<String, dynamic>>(
-                        value: usuario,
-                        child: Text(usuario['nome']),
-                      );
-                    }).toList(),
-                  ),
-                  TextFormField(
-                    controller: notaController,
-                    decoration: const InputDecoration(labelText: 'Nota'),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, insira uma nota';
-                      }
-                      final double nota = double.tryParse(value)!;
-                      if (nota < 0 || nota > 10) {
-                        return 'A nota deve estar entre 0 e 10';
-                      }
-                      return null;
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Data de entrega'),
-                    subtitle: selectedDate != null
-                        ? Text(selectedDate.toString())
-                        : null,
-                    onTap: () async {
-                      final DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: selectedDate ?? DateTime.now(),
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime(DateTime.now().year + 10),
-                      );
-                      if (pickedDate != null) {
-                        setState(() {
-                          selectedDate = pickedDate;
-                        });
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  double nota = double.tryParse(notaController.text) ?? 0;
-                  DateTime dataEntrega = selectedDate ?? DateTime.now();
-
-                  try {
-                    if (usuarioAtividade != null) {
-                      // Chama o método updateActivity do ActivityService
-                      await UserActivitiesService.updateUserActivity(
-                          usuarioAtividade['id'],
-                          usuariosSelecionados,
-                          atividadeSelecionada,
-                          nota,
-                          dataEntrega);
-                      // Exibe um SnackBar de sucesso
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Usuário atualizado com sucesso!'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    } else {
-                      await UserActivitiesService.createUserActivity(
-                          usuariosSelecionados,
-                          atividadeSelecionada,
-                          nota,
-                          dataEntrega);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              'Usuário e atividade relacionados com sucesso'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    }
-                    await _fetchUsuariosFromAtividade();
-                  } catch (e) {
-                    print(
-                        'Erro ao criar/editar relação de usuarios e atividades: $e');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                            'Erro ao criar/editar relação de usuarios e atividades: $e'),
-                        backgroundColor: Colors.red,
+      builder: (context) {
+        return StatefulBuilder(
+            builder: (context, setState) => AlertDialog(
+                  title: Text(usuarioAtividade != null
+                      ? 'Editar Relação'
+                      : 'Adicionar Relação'),
+                  content: Form(
+                    key: _formKey,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          const Text('Selecione uma atividade: ',
+                              style: TextStyle(fontSize: 16)),
+                          const SizedBox(height: 10),
+                          DropdownButton<Map<String, dynamic>>(
+                              isExpanded: true,
+                              value: atividadeSelecionada,
+                              onChanged: (Map<String, dynamic>? newValue) {
+                                setState(() {
+                                  atividadeSelecionada = newValue;
+                                });
+                              },
+                              items: atividades
+                                  .map<DropdownMenuItem<Map<String, dynamic>>>(
+                                      (atividade) {
+                                return DropdownMenuItem<Map<String, dynamic>>(
+                                  value: atividade,
+                                  child: Text(atividade['titulo']),
+                                );
+                              }).toList()),
+                          const Text('Selecione um usuário: ',
+                              style: TextStyle(fontSize: 16)),
+                          const SizedBox(height: 10),
+                          DropdownButton<Map<String, dynamic>>(
+                            isExpanded: true,
+                            value: null,
+                            onChanged: (Map<String, dynamic>? newValue) {
+                              if (newValue != null) {
+                                int novoUsuario = newValue['id'];
+                                bool usuarioJaSelecionado =
+                                    usuariosSelecionados.any((usuario) =>
+                                        usuario['id'] == novoUsuario);
+                                if (!usuarioJaSelecionado) {
+                                  setState(() {
+                                    usuariosSelecionados.add(newValue);
+                                  });
+                                }
+                              }
+                            },
+                            items: usuarios
+                                .map<DropdownMenuItem<Map<String, dynamic>>>(
+                                    (usuario) {
+                              return DropdownMenuItem<Map<String, dynamic>>(
+                                value: usuario,
+                                child: Text(usuario['nome']),
+                              );
+                            }).toList(),
+                          ),
+                          Text(getNomesUsuariosSelecionados()),
+                          TextFormField(
+                            controller: notaController,
+                            decoration:
+                                const InputDecoration(labelText: 'Nota'),
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor, insira uma nota';
+                              }
+                              final double nota = double.tryParse(value)!;
+                              if (nota < 0 || nota > 10) {
+                                return 'A nota deve estar entre 0 e 10';
+                              }
+                              return null;
+                            },
+                          ),
+                          ListTile(
+                            title: const Text('Data de entrega'),
+                            subtitle: selectedDate != null
+                                ? Text(selectedDate.toString())
+                                : null,
+                            onTap: () async {
+                              final DateTime? pickedDate = await showDatePicker(
+                                context: context,
+                                initialDate: selectedDate ?? DateTime.now(),
+                                firstDate: DateTime.now(),
+                                lastDate: DateTime(DateTime.now().year + 10),
+                              );
+                              if (pickedDate != null) {
+                                setState(() {
+                                  selectedDate = pickedDate;
+                                });
+                              }
+                            },
+                          ),
+                        ],
                       ),
-                    );
-                  }
+                    ),
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('Cancelar'),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        if (_formKey.currentState!.validate()) {
+                          double nota =
+                              double.tryParse(notaController.text) ?? 0;
+                          DateTime dataEntrega = selectedDate ?? DateTime.now();
 
-                  Navigator.of(context).pop();
-                }
-              },
-              child: const Text('Salvar'),
-            ),
-          ],
-        );
+                          try {
+                            if (usuarioAtividade != null) {
+                              // Chama o método updateActivity do ActivityService
+                              await UserActivitiesService.updateUserActivity(
+                                  usuarioAtividade['id'],
+                                  usuariosSelecionados,
+                                  atividadeSelecionada,
+                                  nota,
+                                  dataEntrega);
+                              // Exibe um SnackBar de sucesso
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content:
+                                      Text('Usuário atualizado com sucesso!'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            } else {
+                              await UserActivitiesService.createUserActivity(
+                                  usuariosSelecionados,
+                                  atividadeSelecionada,
+                                  nota,
+                                  dataEntrega);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      'Usuário e atividade relacionados com sucesso'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                            await _fetchUsuariosFromAtividade();
+                          } catch (e) {
+                            print(
+                                'Erro ao criar/editar relação de usuarios e atividades: $e');
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    'Erro ao criar/editar relação de usuarios e atividades: $e'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+
+                          Navigator.of(context).pop();
+                        }
+                      },
+                      child: const Text('Salvar'),
+                    ),
+                  ],
+                ));
       },
     );
   }
@@ -302,7 +322,8 @@ class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
                 try {
                   if (usuarioAtividade != null) {
                     // Chama o método updateActivity do ActivityService
-                    await UserActivitiesService.deleteUserActivity(usuarioAtividade['id']);
+                    await UserActivitiesService.deleteUserActivity(
+                        usuarioAtividade['id']);
                     // Exibe um SnackBar de sucesso
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
