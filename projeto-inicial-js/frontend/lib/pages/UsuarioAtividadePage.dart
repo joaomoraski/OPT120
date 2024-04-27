@@ -4,19 +4,17 @@ import 'package:frontend/services/activityService.dart';
 import 'package:frontend/services/userActivitiesService.dart';
 import 'package:frontend/services/userService.dart';
 
-class UsuarioAtividadesScreen extends StatefulWidget {
-  const UsuarioAtividadesScreen({super.key});
+class UsuarioAtividadesPage extends StatefulWidget {
+  const UsuarioAtividadesPage({super.key});
 
   @override
-  _UsuarioAtividadesScreenState createState() =>
-      _UsuarioAtividadesScreenState();
+  _UsuarioAtividadesPageState createState() =>
+      _UsuarioAtividadesPageState();
 }
 
-class _UsuarioAtividadesScreenState extends State<UsuarioAtividadesScreen> {
+class _UsuarioAtividadesPageState extends State<UsuarioAtividadesPage> {
   final _formKey = GlobalKey<FormState>();
   List<Map<String, dynamic>> _usuarioAtividades = [];
-  List<Map<String, dynamic>> _usuarios = [];
-  List<Map<String, dynamic>> _atividades = [];
 
   @override
   void initState() {

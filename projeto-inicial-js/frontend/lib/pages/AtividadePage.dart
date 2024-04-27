@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:frontend/components/custom_data_table.dart';
 import 'package:frontend/services/activityService.dart';
 
-class AtividadesScreen extends StatefulWidget {
-  const AtividadesScreen({super.key});
+class AtividadePage extends StatefulWidget {
+  const AtividadePage({super.key});
 
   @override
-  _AtividadesScreenState createState() => _AtividadesScreenState();
+  _AtividadePageState createState() => _AtividadePageState();
 }
 
-class _AtividadesScreenState extends State<AtividadesScreen> {
+class _AtividadePageState extends State<AtividadePage> {
   final _formKey = GlobalKey<FormState>();
   List<Map<String, dynamic>> _atividades = [];
 

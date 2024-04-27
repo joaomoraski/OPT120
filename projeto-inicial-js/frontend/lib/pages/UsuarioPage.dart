@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:frontend/components/custom_data_table.dart';
 import 'package:frontend/services/userService.dart';
 
-class UsuariosScreen extends StatefulWidget {
-  const UsuariosScreen({super.key});
+class UsuarioPage extends StatefulWidget {
+  const UsuarioPage({super.key});
 
   @override
-  _UsuariosScreenState createState() => _UsuariosScreenState();
+  _UsuarioPageState createState() => _UsuarioPageState();
 }
 
-class _UsuariosScreenState extends State<UsuariosScreen> {
+class _UsuarioPageState extends State<UsuarioPage> {
   final _formKey = GlobalKey<FormState>();
   List<Map<String, dynamic>> _usuarios = [];
 
