@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/pages/UsuarioPage.dart';
+import 'package:frontend/components/AuthMiddleware.dart';
 import 'package:frontend/pages/AtividadePage.dart';
+import 'package:frontend/pages/LoginPage.dart';
 import 'package:frontend/pages/UsuarioAtividadePage.dart';
+import 'package:frontend/pages/UsuarioPage.dart';
 import 'package:frontend/services/BaseServiceApi.dart';
+import 'package:frontend/services/authService.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  BaseServiceApi.initialize('http://localhost:3333');
   runApp(MyApp());
 }
 
@@ -13,22 +17,36 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'CRUD Atividades',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
       home: const AuthenticationWrapper(),
       routes: {
-        '/usuarios': (context) => const UsuarioPage(),
-        '/atividades': (context) => const AtividadePage(),
-        '/usuarioAtividades': (context) => const UsuarioAtividadesPage(),
+        '/usuarios': (context) => const AuthMiddleware(child: UsuarioPage()),
+        '/atividades': (context) =>
+            const AuthMiddleware(child: AtividadePage()),
+        '/usuarioAtividades': (context) =>
+            const AuthMiddleware(child: UsuarioAtividadesPage()),
+        '/login': (context) => const LoginPage(),
+        '/logout': (context) {
+          // Remove o token das preferências compartilhadas
+          SharedPreferences.getInstance().then((prefs) {
+            prefs.remove('token');
+            // Redireciona imediatamente para a tela de login
+            Navigator.pushReplacementNamed(context, '/');
+          });
+          // Retorna um widget vazio enquanto a remoção do token é realizada
+          return SizedBox();
+        },
       },
     );
   }
 }
 
 class AuthenticationWrapper extends StatelessWidget {
-  const AuthenticationWrapper({Key? key}) : super(key: key);
+  const AuthenticationWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -51,14 +69,12 @@ class AuthenticationWrapper extends StatelessWidget {
   Future<bool> checkAuthenticated() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    // Aqui você pode implementar a lógica para verificar se o token é válido
-    // Por exemplo, enviar o token para o backend para verificar sua validade
     return token != null;
   }
 }
 
 class MyHomePage extends StatelessWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  const MyHomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +82,14 @@ class MyHomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Aplicação de usuário e atividades'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              Navigator.pushNamed(context, '/logout');
+            },
+          ),
+        ],
       ),
       body: Center(
         child: Column(
@@ -98,98 +122,25 @@ class MyHomePage extends StatelessWidget {
   }
 }
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({Key? key}) : super(key: key);
-
+class LogoutPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login'),
+        title: const Text('Logout'),
       ),
-      body: LoginForm(),
-    );
-  }
-}
-
-class LoginForm extends StatelessWidget {
-  const LoginForm({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          TextField(
-            decoration: InputDecoration(labelText: 'Email'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            decoration: InputDecoration(labelText: 'Senha'),
-            obscureText: true,
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              // Implemente a lógica de autenticação aqui
-            },
-            child: const Text('Login'),
-          ),
-        ],
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () async {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.remove('token');
+            Navigator.pushReplacementNamed(context, '/');
+          },
+          child: const Text('Logout'),
+        ),
       ),
     );
   }
 }
 
-class RegisterPage extends StatelessWidget {
-  const RegisterPage({Key? key}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cadastro'),
-      ),
-      body: RegisterForm(),
-    );
-  }
-}
-
-class RegisterForm extends StatelessWidget {
-  const RegisterForm({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          TextField(
-            decoration: InputDecoration(labelText: 'Nome'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            decoration: InputDecoration(labelText: 'Email'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            decoration: InputDecoration(labelText: 'Senha'),
-            obscureText: true,
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              // Implemente a lógica de cadastro aqui
-            },
-            child: const Text('Cadastrar'),
-          ),
-        ],
-      ),
-    );
-  }
-}

@@ -1,37 +1,15 @@
 import express from "express";
-import UsersController from "../controllers/usersController.js";
-import routes from "../routes.js";
+import userRoutes from "./user.js";
+import AuthController from "../controllers/authController.js";
+import AuthMiddleware from "../middleware/authMiddleware.js";
 
-const userRoutes = express.Router();
+const authRoutes = express.Router();
 
-const usersController = new UsersController();
+// Rota para autenticação
+const authController = new AuthController();
 
-routes.get('/users', async (req, res) => {
-    await usersController.getUsers(req, res)
-});
+authRoutes.post('/login', authController.login);
 
-routes.get('/users/:id', async (req, res) => {
-    const userId = req.params.id; // Pega o id da request
-    await usersController.getUser(userId, req, res)
-});
+authRoutes.post('/register', authController.register);
 
-routes.post('/users/create', async (req, res) => {
-    await usersController.create(req, res)
-    res.send()
-});
-
-routes.put('/users/:id', async (req, res) => {
-    const userId = req.params.id;
-    const updatedUserData = req.body; // Pega os dados que serao atualizados da request
-    await usersController.updateUser(userId, updatedUserData, req, res);
-    res.send();
-});
-
-routes.delete('/users/:id', async (req, res) => {
-    const userId = req.params.id; // Pega o id da request
-    await usersController.deleteUser(userId, req, res);
-});
-
-module.exports = {
-    userRoutes
-}
+export default authRoutes

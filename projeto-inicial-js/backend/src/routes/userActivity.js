@@ -1,21 +1,35 @@
 import express from "express";
-import routes from "../routes.js";
+import UserActivityController from "../controllers/userActivityController.js";
 
-const authRoutes = express.Router();
+const userActivityRoutes = express.Router();
 
-// Rota para autenticação
-const authController = new AuthController();
+const userActivityController = new UserActivityController();
 
-routes.post('/login', authController.login);
-
-
-const authMiddleware = new AuthMiddleware();
-
-// Rota protegida que requer autenticação
-routes.get('/protected', authMiddleware.verifyToken, (req, res) => {
-    res.json({message: 'Protected route accessed successfully'});
+userActivityRoutes.post('/', async (req, res) => {
+    await userActivityController.create(req, res)
+    res.send()
 });
 
-module.exports = {
-    authRoutes
-}
+userActivityRoutes.get('/', async (req, res) => {
+    await userActivityController.getUserActivities(req, res)
+});
+
+userActivityRoutes.get('/:id', async (req, res) => {
+    const activityId = req.params.id; // Pega o id da request
+    await userActivityController.getUserActivity(activityId, req, res)
+});
+
+userActivityRoutes.put('/:id', async (req, res) => {
+    const userActivityId = req.params.id;
+    const updatedUserData = req.body; // Pega os dados que serao atualizados da request
+    await userActivityController.updateActivity(userActivityId, updatedUserData, req, res);
+    res.send();
+});
+
+userActivityRoutes.delete('/:id', async (req, res) => {
+    const userActivityId = req.params.id; // Pega o id da request
+    await userActivityController.deleteUserActivity(userActivityId, req, res);
+    res.send();
+});
+
+export default userActivityRoutes

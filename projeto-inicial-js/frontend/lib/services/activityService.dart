@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import 'package:frontend/services/BaseServiceApi.dart' as ApiService;
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 class ActivityService {
@@ -14,7 +11,7 @@ class ActivityService {
         'nota': nota,
         'dataLimite': DateFormat('yyyy-MM-dd').format(dataLimite),
       };
-      await ApiService.BaseServiceApi.post('activity/create', payload);
+      await ApiService.BaseServiceApi.post('activity/', payload);
     } catch (e) {
       print('Error creating activity: $e');
       rethrow; // Re-throw the error to propagate it to the caller
@@ -56,18 +53,12 @@ class ActivityService {
   }
 
   static Future<List<Map<String, dynamic>>> fetchActivities() async {
-    final url = Uri.parse('http://localhost:3333/activity');
-    final response = await http.get(url); // espera a resposta
-    if (response.statusCode == 200) {
-      // Se deu bom decodifica o json para uma lista de tipo dinamico
-      final List<dynamic> responseBody = jsonDecode(response.body);
-      final List<Map<String, dynamic>> activities = responseBody
-          .map((activity) => activity as Map<String, dynamic>)
-          .toList();
-      return activities;
-    } else {
-      print('Algo de errado aconteceu: ${response.statusCode}');
+    try {
+      final response = await ApiService.BaseServiceApi.getList('activity/');
+      return response;
+    } catch (e) {
+      print('Erro ao listar usuarios: $e');
+      rethrow;
     }
-    return [];
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class CustomDataTable extends StatelessWidget {
   final List<Map<String, dynamic>> data;
@@ -50,7 +51,10 @@ class CustomDataTable extends StatelessWidget {
 
   List<DataColumn> _buildColumns() {
     return columnNames.map((name) => DataColumn(label: Text(name))).toList() +
-        [const DataColumn(label: Text('Editar')), const DataColumn(label: Text('Deletar'))];
+        [
+          const DataColumn(label: Text('Editar')),
+          const DataColumn(label: Text('Deletar'))
+        ];
   }
 
   List<DataRow> _buildRows() {
@@ -62,47 +66,78 @@ class CustomDataTable extends StatelessWidget {
             color: entry.key.isEven
                 ? MaterialStateProperty.all<Color>(Colors.white)
                 : MaterialStateProperty.all<Color>(Colors.grey[200]!),
-            cells: entry.value.keys
-                    .map(
-                      (key) => DataCell(
-                        Text(
-                          entry.value[key].toString(),
-                          style: const TextStyle(
-                            // Customize cell text style
-                            fontWeight: FontWeight.normal,
-                            fontSize: 16.0,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    )
-                    .toList() +
-                [
-                  DataCell(
-                    IconButton(
-                      icon: onEdit != null ? const Icon(Icons.edit) : const Icon(Icons.list),
-                      onPressed: () {
-                        if (onEdit != null) {
-                          onEdit(entry.key);
-                        } else {
-                          // Handle the case when onEdit is null
-                          // For example, navigate to a list view
-                          // or display a message
-                        }
-                      },
-                    ),
-                  ),
-                  DataCell(
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () {
-                        onDelete(entry.key);
-                      },
-                    ),
-                  ),
-                ],
+            cells:
+                buildConditionalRows(entry).toList() + addButtonsAtEnd(entry),
           ),
         )
         .toList();
+  }
+
+  List<DataCell> addButtonsAtEnd(MapEntry<int, Map<String, dynamic>> entry) {
+    return [
+      DataCell(
+        IconButton(
+          icon:
+              onEdit != null ? const Icon(Icons.edit) : const Icon(Icons.list),
+          onPressed: () {
+            if (onEdit != null) {
+              onEdit(entry.key);
+            } else {
+              // Handle the case when onEdit is null
+              // For example, navigate to a list view
+              // or display a message
+            }
+          },
+        ),
+      ),
+      DataCell(
+        IconButton(
+          icon: const Icon(Icons.delete),
+          onPressed: () {
+            onDelete(entry.key);
+          },
+        ),
+      ),
+    ];
+  }
+
+  Iterable<DataCell> buildConditionalRows(
+      MapEntry<int, Map<String, dynamic>> entry) {
+    return entry.value.keys.map(
+      (key) {
+        final dynamic value = entry.value[key];
+        if (value is DateTime || (value is String && DateTime.tryParse(value) != null)) {
+          var dateTimeValue = value;
+          if (dateTimeValue is String) {
+            dateTimeValue = DateTime.parse(dateTimeValue);
+          }
+          return DataCell(
+            Text(
+              DateFormat('dd/MM/yyyy').format(dateTimeValue),
+              // Formata a data como dd/MM/yyyy
+              style: const TextStyle(
+                // Customize cell text style
+                fontWeight: FontWeight.normal,
+                fontSize: 16.0,
+                color: Colors.black,
+              ),
+            ),
+          );
+        } else {
+          // Se não for DateTime, exiba o valor como está
+          return DataCell(
+            Text(
+              value.toString(),
+              style: const TextStyle(
+                // Customize cell text style
+                fontWeight: FontWeight.normal,
+                fontSize: 16.0,
+                color: Colors.black,
+              ),
+            ),
+          );
+        }
+      },
+    );
   }
 }

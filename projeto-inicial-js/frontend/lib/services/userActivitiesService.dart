@@ -22,7 +22,7 @@ class UserActivitiesService {
         'nota': nota,
         'entrega': DateFormat('yyyy-MM-dd').format(dataEntrega),
       };
-      await BaseServiceApi.post('userActivity/create', payload);
+      await BaseServiceApi.post('userActivity/', payload);
     } catch (e) {
       print('Erro ao criar usuario: $e');
       rethrow;
@@ -30,18 +30,13 @@ class UserActivitiesService {
   }
 
   static Future<List<Map<String, dynamic>>> fetchUsuariosFromAtividade() async {
-    final url = Uri.parse('http://localhost:3333/userActivity');
-    final response = await http.get(url); // espera a resposta
-    if (response.statusCode == 200) {
-      // Se deu bom decodifica o json para uma lista de tipo dinamico
-      final List<dynamic> responseBody = jsonDecode(response.body);
-      final List<Map<String, dynamic>> userActivities =
-      responseBody.map((user) => user as Map<String, dynamic>).toList();
-      return userActivities;
-    } else {
-      print('Algo de errado aconteceu: ${response.statusCode}');
+    try {
+      final response = await ApiService.BaseServiceApi.getList('userActivity/');
+      return response;
+    } catch (e) {
+      print('Erro ao listar usuarios: $e');
+      rethrow;
     }
-    return [];
   }
 
   static Future<void> updateUserActivity(int id,

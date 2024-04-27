@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/components/custom_data_table.dart';
 import 'package:frontend/services/activityService.dart';
+import 'package:intl/intl.dart';
 
 class AtividadePage extends StatefulWidget {
   const AtividadePage({super.key});

@@ -1,21 +1,34 @@
 import express from "express";
-import routes from "../routes.js";
+import ActivityController from "../controllers/activityController.js";
 
-const authRoutes = express.Router();
+const activityRoutes = express.Router();
 
-// Rota para autenticação
-const authController = new AuthController();
+const activityController = new ActivityController();
 
-routes.post('/login', authController.login);
-
-
-const authMiddleware = new AuthMiddleware();
-
-// Rota protegida que requer autenticação
-routes.get('/protected', authMiddleware.verifyToken, (req, res) => {
-    res.json({message: 'Protected route accessed successfully'});
+activityRoutes.get('/', async (req, res) => {
+    await activityController.getActivities(req, res)
 });
 
-module.exports = {
-    authRoutes
-}
+activityRoutes.get('/:id', async (req, res) => {
+    const activityId = req.params.id; // Pega o id da request
+    await activityController.getActivity(activityId, req, res)
+});
+
+activityRoutes.post('/', async (req, res) => {
+    await activityController.create(req, res)
+    res.send()
+});
+
+activityRoutes.put('/:id', async (req, res) => {
+    const activityId = req.params.id;
+    const updatedActivityData = req.body; // Pega os dados que serao atualizados da request
+    await activityController.updateActivity(activityId, updatedActivityData, req, res);
+});
+
+activityRoutes.delete('/:id', async (req, res) => {
+    const activityId = req.params.id; // Pega o id da request
+    await activityController.deleteActivity(activityId, req, res);
+    res.send();
+});
+
+export default activityRoutes

@@ -1,157 +1,85 @@
-import pool from '../connection.js'
 import bcrypt from 'bcrypt';
+import jwt from "jsonwebtoken";
+import pool from "../connection.js";
 
-class UsersController {
+class AuthController {
 
-	async create(request, response) {
-		const {
-			name,
-			email,
-			password
-		} = request.body;
+    async findUserByEmail(email) {
+        const connection = await pool.getConnection();
 
-		const saltRounds = 10; // Adjust salt rounds as needed
+        await connection.beginTransaction();
+        const [existingUser] = await connection.query('SELECT * FROM usuario WHERE email = ?', [email]);
 
-		if (!name || !email || !password) {
-			return response.status(400).json({ message: 'Bota os campo certo ai' });
-		}
+        return existingUser[0];
+    }
 
-		if (!(email.includes('@') && email.includes('.'))) {
-			return response.status(400).json({ message: 'Email num ta valido não' });
-		}
-
-		try {
-			const connection = await pool.getConnection();
-			await connection.beginTransaction();
-
-			const [existingUser] = await connection.query('SELECT * FROM usuario WHERE email = ?', [email]);
-			if (existingUser.length > 0) {
-				await connection.rollback();
-				return response.status(409).json({ message: 'Já existe esse email ai parceirage' });
-			}
-
-			const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-			const [result] = await connection.query('INSERT INTO usuario (nome, email, password) VALUES (?, ?, ?)', [name, email, hashedPassword]);
-
-			await connection.commit();
-
-			return response.status(201).json({ message: 'Usuário criado com sucesso.' });
-		} catch (error) {
-			console.error(error);
-			return response.status(500).json({ message: 'Ocorreu um erro ao criar o usuário.' });
-		}
-	};
+    async login(request, response) {
+        try {
+            const {email, password} = request.body;
+            const connection = await pool.getConnection();
+            await connection.beginTransaction();
+            const users = await connection.query('SELECT * FROM usuario WHERE email = ?', [email]);
+            const user = users[0];
+            if (!user) {
+                return response.status(401).json({error: 'Authentication failed'});
+            }
+            const passwordMatch = await bcrypt.compare(password, user[0].password);
+            if (!passwordMatch) {
+                return response.status(401).json({error: 'Authentication failed'});
+            }
+            const token = jwt.sign({userId: user.id}, 'your-secret-key', {
+                expiresIn: '1h',
+            });
+            response.status(200).json({token});
+        } catch (error) {
+            response.status(500).json({error: 'Login failed'});
+        }
+    }
 
 
-	async getUsers(request, response) {
-		try {
-			const usersList = await pool.query('SELECT id, nome, email FROM usuario');
+    async register(request, response) {
+        const {
+            name,
+            email,
+            password
+        } = request.body;
 
-			return response.status(200).json(usersList[0]);
-		} catch (error) {
-			console.error(error);
-			return response.status(500).json({ message: 'Ocorreu um erro ao executar a listagem.' });
-		}
-	};
+        const saltRounds = 10; // Adjust salt rounds as needed
 
-
-	async getUser(userId, request, response) {
-		try {
-			const connection = await pool.getConnection();
-			const [rows] = await connection.query('SELECT id, nome, email FROM usuario WHERE id = ?', [userId]);
-			connection.release(); // Fecha conexão depois da query
-
-			if (rows.length == 0) {
-				throw new Error("NotFoundError");
-			}
-			const user = rows[0];
+        if (!name || !email || !password) {
+            return response.status(400).json({ message: 'Bota os campo certo ai' });
+        }
 
 
-			return response.status(200).json(user);
-		} catch (error) {
-			console.error(error);
-			if (error.message === "NotFoundError") {
-				return response.status(404).json({ message: 'Usuário não encontrado.' });
-			} else {
-				return response.status(404).json({ message: 'Aconteceu algum erro ai.' });
-			}
-		}
-	};
+        if (!(email.includes('@') && email.includes('.'))) {
+            console.log(request.body)
+            return response.status(400).json({ message: 'Email num ta valido não' });
+        }
 
 
-	async updateUser(userId, data, request, response) {
-		try {
-			const connection = await pool.getConnection();
-			await connection.beginTransaction();
+        try {
+            const connection = await pool.getConnection();
+            await connection.beginTransaction();
 
-			// Criando a sql de update dinamicamente baseado nos dados para evitar sql inject
-			if(data.password === null || data.password === undefined || data.password === '') {
-				delete data.password
-			} else {
-				const saltRounds = 10;
-				data.password = await bcrypt.hash(data.password, saltRounds);
-			}
+            const [existingUser] = await connection.query('SELECT * FROM usuario WHERE email = ?', [email]);
+            if (existingUser.length > 0) {
+                await connection.rollback();
+                return response.status(409).json({ message: 'Já existe esse email ai parceirage' });
+            }
 
-			let updateFields = '';
-			const keys = Object.keys(data);
-			for (let i = 0; i < keys.length; i++) {
-				updateFields += `${keys[i]} = ?`;
-				if (i < keys.length - 1) {
-					updateFields += ', ';
-				}
-			}
-			const updateValues = Object.values(data);
-			const queryString = `UPDATE usuario SET ${updateFields} WHERE id = ?`;
+            const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-			await connection.query(queryString, [...updateValues, userId]);
-			await connection.commit();
-			connection.release();
+            const [result] = await connection.query('INSERT INTO usuario (nome, email, password) VALUES (?, ?, ?)', [name, email, hashedPassword]);
 
-			return response.status(200).json({ message: 'Usuário atualizado com sucesso' });
-		} catch (error) {
-			console.error(error);
-			await connection.rollback(); // Rollback para caso tenha dado erro na atualização
-			if (error.name === 'NotFoundError') {
-				return response.status(404).json({ message: 'Usuário não encontrado.' });
-			} else if (error.name === 'ValidationError') {
-				return response.status(404).json({ message: error.message });
-			} else {
-				return response.status(500).json({ message: 'Erro ao atualizar o usuário' });
-			}
-		}
-	};
+            await connection.commit();
 
-
-	async deleteUser(userId, request, response) {
-		const connection = await pool.getConnection();
-		try {
-			await connection.beginTransaction();
-
-			const [rows, fields] = await connection.query("select count(id) from usuario_atividade where usuario_id = ?", [userId])
-
-			if (rows[0]['count(id)'] > 0) {
-				await connection.commit();
-				connection.release();
-				return response.status(403).json({ message: 'Você não pode apagar um usuario relacionado a alguma atividade.' });
-			}
-
-			await connection.query('DELETE FROM usuario WHERE id = ?', [userId]);
-			await connection.commit();
-			connection.release();
-
-			return response.status(200).send();
-		} catch (error) {
-			console.error(error);
-			await connection.rollback(); // Rollback para caso tenha dado erro na atualização
-			if (error.name === 'NotFoundError') {
-				return response.status(404).json({ message: 'Usuário não encontrado.' });
-			} else {
-				return response.status(500).json({ message: 'Erro ao atualizar o usuário' });
-			}
-		}
-	};
-
+            return response.status(201).json({ message: 'Usuário criado com sucesso.' });
+        } catch (error) {
+            console.error(error);
+            return response.status(500).json({ message: 'Ocorreu um erro ao criar o usuário.' });
+        }
+    }
 }
 
-export default UsersController
+export default AuthController
+
